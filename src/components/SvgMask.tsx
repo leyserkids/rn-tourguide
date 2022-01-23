@@ -12,8 +12,8 @@ import {
   ScaledSize,
 } from 'react-native'
 import Svg, { PathProps } from 'react-native-svg'
-import { IStep, ValueXY } from '../types'
-import { svgMaskPathMorph } from '../utilities'
+import { IStep, KeyIterable, ValueXY } from '../types'
+import { notShallowEqual, svgMaskPathMorph } from '../utilities'
 import { AnimatedSvgPath } from './AnimatedPath'
 
 interface Props {
@@ -81,6 +81,13 @@ export class SvgMask extends Component<Props, State> {
     }
 
     this.listenerID = this.state.animation.addListener(this.animationListener)
+  }
+
+  shouldComponentUpdate(nextProps: KeyIterable, nextState: KeyIterable) {
+    return (
+      notShallowEqual(this.props, nextProps) ||
+      notShallowEqual(this.state, nextState)
+    )
   }
 
   componentDidUpdate(prevProps: Props) {

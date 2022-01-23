@@ -5,6 +5,7 @@ import memoize from 'memoize-one'
 import {
   BorderRadiusObject,
   IStep,
+  KeyIterable,
   Shape,
   Steps,
   SVGMaskPathMorphParam,
@@ -249,4 +250,8 @@ export const svgMaskPathMorph = ({
   return `${getCanvasPath(previousPath)}${interpolator(
     clamp(animation._value, 0, 1),
   )}`
+}
+
+export function notShallowEqual<T extends KeyIterable>(o1: T, o2: T) {
+  return Object.keys(o1).some((k) => !Object.is(o1[k], o2[k]))
 }

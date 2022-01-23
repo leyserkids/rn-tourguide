@@ -10,7 +10,14 @@ import {
   View,
   ViewStyle,
 } from 'react-native'
-import { BorderRadiusObject, IStep, Labels, ValueXY } from '../types'
+import {
+  BorderRadiusObject,
+  IStep,
+  KeyIterable,
+  Labels,
+  ValueXY,
+} from '../types'
+import { notShallowEqual } from '../utilities'
 import styles, { MARGIN } from './style'
 import { SvgMask } from './SvgMask'
 import { Tooltip, TooltipProps } from './Tooltip'
@@ -95,6 +102,13 @@ export class Modal extends React.Component<ModalProps, State> {
 
   constructor(props: ModalProps) {
     super(props)
+  }
+
+  shouldComponentUpdate(nextProps: KeyIterable, nextState: KeyIterable) {
+    return (
+      notShallowEqual(this.props, nextProps) ||
+      notShallowEqual(this.state, nextState)
+    )
   }
 
   componentDidUpdate(prevProps: ModalProps) {

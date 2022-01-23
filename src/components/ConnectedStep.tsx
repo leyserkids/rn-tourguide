@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { BorderRadiusObject, Shape } from '../types'
+import { BorderRadiusObject, KeyIterable, Shape } from '../types'
+import { notShallowEqual } from '../utilities'
 import { ITourGuideContext } from './TourGuideContext'
 
 declare var __TEST__: boolean
@@ -25,6 +26,14 @@ export class ConnectedStep extends React.Component<Props> {
     active: true,
   }
   wrapper: any
+
+  shouldComponentUpdate(nextProps: KeyIterable, nextState: KeyIterable) {
+    return (
+      notShallowEqual(this.props, nextProps) ||
+      notShallowEqual(this.state, nextState)
+    )
+  }
+
   componentDidMount() {
     if (this.props.active) {
       this.register()
