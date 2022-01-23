@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { BorderRadiusObject, Shape } from '../types';
+import { BorderRadiusObject, KeyIterable, Shape } from '../types';
 import { ITourGuideContext } from './TourGuideContext';
 interface Props {
     name: string;
@@ -21,6 +21,7 @@ export declare class ConnectedStep extends React.Component<Props> {
         active: boolean;
     };
     wrapper: any;
+    shouldComponentUpdate(nextProps: KeyIterable, nextState: KeyIterable): boolean;
     componentDidMount(): void;
     componentDidUpdate(prevProps: Props): void;
     componentWillUnmount(): void;

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { TourGuideZoneProps } from '../components/TourGuideZone';
 import { TourGuideZoneByPositionProps } from '../components/TourGuideZoneByPosition';
 export declare const useTourGuideController: (tourKey?: string | undefined) => {
@@ -8,6 +8,6 @@ export declare const useTourGuideController: (tourKey?: string | undefined) => {
     getCurrentStep: () => import("..").IStep | undefined;
     canStart: boolean | undefined;
     tourKey: string;
-    TourGuideZone: React.FC<Pick<TourGuideZoneProps, "text" | "shape" | "children" | "maskOffset" | "borderRadiusObject" | "borderRadius" | "keepTooltipPosition" | "tooltipBottomOffset" | "style" | "isTourGuide" | "zone">>;
-    TourGuideZoneByPosition: React.FC<Pick<TourGuideZoneByPositionProps, "text" | "shape" | "borderRadiusObject" | "keepTooltipPosition" | "tooltipBottomOffset" | "isTourGuide" | "zone" | "left" | "right" | "width" | "height" | "bottom" | "top" | "containerStyle">>;
+    TourGuideZone: React.FC<Pick<TourGuideZoneProps, "borderRadius" | "borderRadiusObject" | "shape" | "maskOffset" | "text" | "children" | "keepTooltipPosition" | "tooltipBottomOffset" | "style" | "isTourGuide" | "zone">>;
+    TourGuideZoneByPosition: React.FC<Pick<TourGuideZoneByPositionProps, "borderRadiusObject" | "shape" | "text" | "keepTooltipPosition" | "tooltipBottomOffset" | "isTourGuide" | "zone" | "left" | "right" | "width" | "height" | "bottom" | "top" | "containerStyle">>;
 };

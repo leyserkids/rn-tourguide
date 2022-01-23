@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Animated, LayoutChangeEvent, StyleProp, ViewStyle, ScaledSize } from 'react-native';
 import { PathProps } from 'react-native-svg';
-import { IStep, ValueXY } from '../types';
+import { IStep, KeyIterable, ValueXY } from '../types';
 interface Props {
     size: ValueXY;
     position: ValueXY;
@@ -43,6 +43,7 @@ export declare class SvgMask extends Component<Props, State> {
     windowDimensions: ScaledSize | null;
     firstPath: string | undefined;
     constructor(props: Props);
+    shouldComponentUpdate(nextProps: KeyIterable, nextState: KeyIterable): boolean;
     componentDidUpdate(prevProps: Props): void;
     componentWillUnmount(): void;
     getPath: () => string;

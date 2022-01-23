@@ -1,4 +1,4 @@
-import { BorderRadiusObject, IStep, Steps, SVGMaskPathMorphParam, SvgPath, ValueXY } from './types';
+import { BorderRadiusObject, IStep, KeyIterable, Steps, SVGMaskPathMorphParam, SvgPath, ValueXY } from './types';
 export declare const getFirstStep: (steps: Steps) => IStep | null;
 export declare const getLastStep: (steps: Steps) => IStep | null;
 export declare const getStepNumber: (steps: Steps, step?: IStep | undefined) => number | undefined;
@@ -15,3 +15,4 @@ export declare const circleSvgPath: ({ size, position, }: {
     position: ValueXY;
 }) => SvgPath;
 export declare const svgMaskPathMorph: ({ previousPath, animation, to: { position, size, shape, maskOffset, borderRadius, borderRadiusObject }, }: SVGMaskPathMorphParam) => string;
+export declare function notShallowEqual<T extends KeyIterable>(o1: T, o2: T): boolean;

@@ -50,3 +50,6 @@ export interface Labels {
     next?: string;
     finish?: string;
 }
+export declare type KeyIterable = {
+    [k: string]: unknown;
+};

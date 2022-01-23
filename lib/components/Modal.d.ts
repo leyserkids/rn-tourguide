@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Animated, LayoutChangeEvent, StyleProp, ViewStyle } from 'react-native';
-import { BorderRadiusObject, IStep, Labels, ValueXY } from '../types';
+import { BorderRadiusObject, IStep, KeyIterable, Labels, ValueXY } from '../types';
 import { TooltipProps } from './Tooltip';
 export interface ModalProps {
     ref: any;
@@ -67,6 +67,7 @@ export declare class Modal extends React.Component<ModalProps, State> {
         position: undefined;
     };
     constructor(props: ModalProps);
+    shouldComponentUpdate(nextProps: KeyIterable, nextState: KeyIterable): boolean;
     componentDidUpdate(prevProps: ModalProps): void;
     handleLayoutChange: ({ nativeEvent: { layout } }: LayoutChangeEvent) => void;
     measure(): Promise<Layout>;
