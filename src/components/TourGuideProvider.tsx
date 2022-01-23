@@ -116,15 +116,17 @@ export const TourGuideProvider = ({
     [eventEmitter],
   )
 
-  const getNextStep = (
-    key: string,
-    step: IStep | undefined = currentStep[key],
-  ) => utils.getNextStep(steps[key]!, step)
+  const getNextStep = useCallback(
+    (key: string, step: IStep | undefined = currentStep[key]) =>
+      utils.getNextStep(steps[key]!, step),
+    [currentStep, steps],
+  )
 
-  const getPrevStep = (
-    key: string,
-    step: IStep | undefined = currentStep[key],
-  ) => utils.getPrevStep(steps[key]!, step)
+  const getPrevStep = useCallback(
+    (key: string, step: IStep | undefined = currentStep[key]) =>
+      utils.getPrevStep(steps[key]!, step),
+    [currentStep, steps],
+  )
 
   const getFirstStep = useCallback(
     (key: string) => utils.getFirstStep(steps[key]!),
@@ -135,43 +137,61 @@ export const TourGuideProvider = ({
     (key: string) => utils.getLastStep(steps[key]!),
     [steps],
   )
-  const _next = (key: string) => setCurrentStep(key, getNextStep(key)!)
+  const _next = useCallback(
+    (key: string) => setCurrentStep(key, getNextStep(key)!),
+    [getNextStep, setCurrentStep],
+  )
 
-  const _prev = (key: string) => setCurrentStep(key, getPrevStep(key)!)
+  const _prev = useCallback(
+    (key: string) => setCurrentStep(key, getPrevStep(key)!),
+    [getPrevStep, setCurrentStep],
+  )
 
-  const _stop = (key: string) => {
-    setVisible(key, false)
-    setCurrentStep(key, undefined)
-  }
+  const _stop = useCallback(
+    (key: string) => {
+      setVisible(key, false)
+      setCurrentStep(key, undefined)
+    },
+    [setCurrentStep],
+  )
 
-  const registerStep = (key: string, step: IStep) => {
-    setSteps((previousSteps) => {
-      const newSteps = { ...previousSteps }
-      newSteps[key] = {
-        ...previousSteps[key],
-        [step.name]: step,
+  const registerStep = useCallback(
+    (key: string, step: IStep) => {
+      setSteps((previousSteps) => {
+        const newSteps = { ...previousSteps }
+        newSteps[key] = {
+          ...previousSteps[key],
+          [step.name]: step,
+        }
+        return newSteps
+      })
+      if (!eventEmitter[key]) {
+        eventEmitter[key] = new mitt()
       }
-      return newSteps
-    })
-    if (!eventEmitter[key]) {
-      eventEmitter[key] = new mitt()
-    }
-  }
+    },
+    [eventEmitter],
+  )
 
-  const unregisterStep = (key: string, stepName: string) => {
-    if (!mounted) {
-      return
-    }
-    setSteps((previousSteps) => {
-      const newSteps = { ...previousSteps }
-      newSteps[key] = Object.entries(previousSteps[key] as StepObject)
-        .filter(([k]) => k !== stepName)
-        .reduce((obj, [k, v]) => Object.assign(obj, { [k]: v }), {})
-      return newSteps
-    })
-  }
+  const unregisterStep = useCallback(
+    (key: string, stepName: string) => {
+      if (!mounted) {
+        return
+      }
+      setSteps((previousSteps) => {
+        const newSteps = { ...previousSteps }
+        newSteps[key] = Object.entries(previousSteps[key] as StepObject)
+          .filter(([k]) => k !== stepName)
+          .reduce((obj, [k, v]) => Object.assign(obj, { [k]: v }), {})
+        return newSteps
+      })
+    },
+    [mounted],
+  )
 
-  const getCurrentStep = (key: string) => currentStep[key]
+  const getCurrentStep = useCallback(
+    (key: string) => currentStep[key],
+    [currentStep],
+  )
 
   const start = useCallback(
     async (key: string, fromStep?: number) => {
@@ -195,9 +215,9 @@ export const TourGuideProvider = ({
     },
     [eventEmitter, getFirstStep, setCurrentStep, steps],
   )
-  const next = () => _next(tourKey)
-  const prev = () => _prev(tourKey)
-  const stop = () => _stop(tourKey)
+  const next = useCallback(() => _next(tourKey), [_next, tourKey])
+  const prev = useCallback(() => _prev(tourKey), [_prev, tourKey])
+  const stop = useCallback(() => _stop(tourKey), [_stop, tourKey])
 
   useEffect(() => {
     if (mounted && visible[tourKey] === false) {
@@ -255,42 +275,78 @@ export const TourGuideProvider = ({
     return obj
   }, [currentStep, getLastStep])
 
+  const containerStyle = useMemo(
+    () => StyleSheet.flatten([styles.container, wrapperStyle]),
+    [wrapperStyle],
+  )
+
+  const ctx = useMemo(
+    () => ({
+      canStart,
+      eventEmitter,
+      registerStep,
+      unregisterStep,
+      getCurrentStep,
+      start,
+      stop,
+      setTourKey,
+    }),
+    [
+      canStart,
+      eventEmitter,
+      getCurrentStep,
+      registerStep,
+      start,
+      stop,
+      unregisterStep,
+    ],
+  )
+
+  const modalProps = useMemo(
+    () => ({
+      next,
+      prev,
+      stop,
+      visible: visible[tourKey],
+      isFirstStep: isFirstStep[tourKey],
+      isLastStep: isLastStep[tourKey],
+      currentStep: currentStep[tourKey],
+      labels,
+      tooltipComponent,
+      tooltipStyle,
+      androidStatusBarVisible,
+      backdropColor,
+      animationDuration,
+      maskOffset,
+      borderRadius,
+      dismissOnPress,
+    }),
+    [
+      androidStatusBarVisible,
+      animationDuration,
+      backdropColor,
+      borderRadius,
+      currentStep,
+      dismissOnPress,
+      isFirstStep,
+      isLastStep,
+      labels,
+      maskOffset,
+      next,
+      prev,
+      stop,
+      tooltipComponent,
+      tooltipStyle,
+      tourKey,
+      visible,
+    ],
+  )
+
   return (
-    <View style={[styles.container, wrapperStyle]}>
-      <TourGuideContext.Provider
-        value={{
-          eventEmitter,
-          registerStep,
-          unregisterStep,
-          getCurrentStep,
-          start,
-          stop,
-          canStart,
-          setTourKey,
-        }}
-      >
+    <View style={containerStyle}>
+      <TourGuideContext.Provider value={ctx}>
         {children}
-        <Modal
-          ref={modal}
-          {...{
-            next,
-            prev,
-            stop,
-            visible: visible[tourKey],
-            isFirstStep: isFirstStep[tourKey],
-            isLastStep: isLastStep[tourKey],
-            currentStep: currentStep[tourKey],
-            labels,
-            tooltipComponent,
-            tooltipStyle,
-            androidStatusBarVisible,
-            backdropColor,
-            animationDuration,
-            maskOffset,
-            borderRadius,
-            dismissOnPress,
-          }}
-        />
+        <Modal ref={modal} {...modalProps} />
       </TourGuideContext.Provider>
     </View>
   )
