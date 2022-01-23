@@ -54,6 +54,11 @@ export const TourGuideProvider = ({
   dismissOnPress = false,
 }: TourGuideProviderProps) => {
   const [tourKey, setTourKey] = useState<string | '_default'>('_default')
+  const tourKeyRef = useRef(tourKey)
+  useEffect(() => {
+    tourKeyRef.current = tourKey
+  }, [tourKey])
+
   const [visible, updateVisible] = useState<Ctx<boolean | undefined>>({
     _default: false,
   })
@@ -211,7 +216,8 @@ export const TourGuideProvider = ({
   )
   const next = useCallback(() => _next(tourKey), [_next, tourKey])
   const prev = useCallback(() => _prev(tourKey), [_prev, tourKey])
-  const stop = useCallback(() => _stop(tourKey), [_stop, tourKey])
+  // 'stop' need passdown, should make it stable not change.
+  const stop = useCallback(() => _stop(tourKeyRef.current), [_stop])
 
   useEffect(() => {
     if (mountedRef.current && visible[tourKey] === false) {
