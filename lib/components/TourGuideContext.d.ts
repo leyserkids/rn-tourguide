@@ -10,9 +10,9 @@ export declare type Ctx<T extends any> = Record<string, T> & {
     _default: T;
 };
 export declare type ITourGuideContext = {
+    canStart: (tourKey?: string) => boolean;
     setTourKey?: (tourKey: string) => void;
-    eventEmitter?: Ctx<Emitter>;
-    canStart: Ctx<boolean>;
+    getEventEmitter?: () => Ctx<Emitter>;
     registerStep?(key: string, step: IStep): void;
     unregisterStep?(key: string, stepName: string): void;
     getCurrentStep?(key: string): IStep | undefined;
