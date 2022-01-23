@@ -68,7 +68,7 @@ export const TourGuideProvider = ({
   })
   const stepsRef = useRef<Ctx<Steps>>({ _default: [] })
 
-  const [canStartFlag, setCanStartFlag] = useState<Ctx<boolean>>({
+  const canStartFlagRef = useRef<Ctx<boolean>>({
     _default: false,
   })
 
@@ -233,22 +233,19 @@ export const TourGuideProvider = ({
             stepsRef.current[tourKey].length > 0) ||
           Object.entries(stepsRef.current[tourKey]).length > 0
         ) {
-          setCanStartFlag((obj) => {
-            const newObj = { ...obj }
-            newObj[tourKey] = true
-            return newObj
-          })
+          const newObj = { ...canStartFlagRef.current }
+          newObj[tourKey] = true
+          canStartFlagRef.current = newObj
+
           if (typeof startAtMount === 'string') {
             start(startAtMount)
           } else if (startAtMount) {
             start('_default')
           }
         } else {
-          setCanStartFlag((obj) => {
-            const newObj = { ...obj }
-            newObj[tourKey] = false
-            return newObj
-          })
+          const newObj = { ...canStartFlagRef.current }
+          newObj[tourKey] = false
+          canStartFlagRef.current = newObj
         }
       }
     }
@@ -276,8 +273,8 @@ export const TourGuideProvider = ({
   )
 
   const canStart = useCallback(
-    (key: string = '_default') => canStartFlag[key],
-    [canStartFlag],
+    (key: string = '_default') => canStartFlagRef.current[key],
+    [],
   )
 
   const getEventEmitter = useCallback(() => eventEmitterRef.current, [])
