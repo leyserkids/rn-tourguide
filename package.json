@@ -8,7 +8,7 @@
   "scripts": {
     "start": "yarn config:dev && expo start -c",
     "start:web": "yarn config:dev && expo start -c -w",
-    "test": "TZ=Europe/Paris jest --no-watchman",
+    "test": "jest --no-watchman",
     "tsc": "node_modules/.bin/tsc --noEmit",
     "tsc:watch": "node_modules/.bin/tsc --noEmit --watch",
     "build": "rm -rf lib/ && tsc",
