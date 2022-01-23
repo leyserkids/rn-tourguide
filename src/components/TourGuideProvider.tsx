@@ -66,7 +66,7 @@ export const TourGuideProvider = ({
   const [currentStep, updateCurrentStep] = useState<Ctx<IStep | undefined>>({
     _default: undefined,
   })
-  const [steps, setSteps] = useState<Ctx<Steps>>({ _default: [] })
+  const stepsRef = useRef<Ctx<Steps>>({ _default: [] })
 
   const [canStartFlag, setCanStartFlag] = useState<Ctx<boolean>>({
     _default: false,
@@ -118,24 +118,24 @@ export const TourGuideProvider = ({
 
   const getNextStep = useCallback(
     (key: string, step: IStep | undefined = currentStep[key]) =>
-      utils.getNextStep(steps[key]!, step),
-    [currentStep, steps],
+      utils.getNextStep(stepsRef.current[key]!, step),
+    [currentStep],
   )
 
   const getPrevStep = useCallback(
     (key: string, step: IStep | undefined = currentStep[key]) =>
-      utils.getPrevStep(steps[key]!, step),
-    [currentStep, steps],
+      utils.getPrevStep(stepsRef.current[key]!, step),
+    [currentStep],
   )
 
   const getFirstStep = useCallback(
-    (key: string) => utils.getFirstStep(steps[key]!),
-    [steps],
+    (key: string) => utils.getFirstStep(stepsRef.current[key]!),
+    [],
   )
 
   const getLastStep = useCallback(
-    (key: string) => utils.getLastStep(steps[key]!),
-    [steps],
+    (key: string) => utils.getLastStep(stepsRef.current[key]!),
+    [],
   )
   const _next = useCallback(
     (key: string) => setCurrentStep(key, getNextStep(key)!),
@@ -156,14 +156,13 @@ export const TourGuideProvider = ({
   )
 
   const registerStep = useCallback((key: string, step: IStep) => {
-    setSteps((previousSteps) => {
-      const newSteps = { ...previousSteps }
-      newSteps[key] = {
-        ...previousSteps[key],
-        [step.name]: step,
-      }
-      return newSteps
-    })
+    const newSteps = { ...stepsRef.current }
+    newSteps[key] = {
+      ...stepsRef.current[key],
+      [step.name]: step,
+    }
+    stepsRef.current = newSteps
+
     if (!eventEmitterRef.current[key]) {
       eventEmitterRef.current[key] = new mitt()
     }
@@ -174,13 +173,11 @@ export const TourGuideProvider = ({
       if (!mountedRef.current) {
         return
       }
-      setSteps((previousSteps) => {
-        const newSteps = { ...previousSteps }
-        newSteps[key] = Object.entries(previousSteps[key] as StepObject)
-          .filter(([k]) => k !== stepName)
-          .reduce((obj, [k, v]) => Object.assign(obj, { [k]: v }), {})
-        return newSteps
-      })
+      const newSteps = { ...stepsRef.current }
+      newSteps[key] = Object.entries(stepsRef.current[key] as StepObject)
+        .filter(([k]) => k !== stepName)
+        .reduce((obj, [k, v]) => Object.assign(obj, { [k]: v }), {})
+      stepsRef.current = newSteps
     },
     [mountedRef],
   )
@@ -193,7 +190,7 @@ export const TourGuideProvider = ({
   const start = useCallback(
     async (key: string, fromStep?: number) => {
       const newCurrentStep = fromStep
-        ? (steps[key] as StepObject)[fromStep]
+        ? (stepsRef.current[key] as StepObject)[fromStep]
         : getFirstStep(key)
 
       if (startTriesRef.current > MAX_START_TRIES) {
@@ -210,7 +207,7 @@ export const TourGuideProvider = ({
         startTriesRef.current = 0
       }
     },
-    [getFirstStep, setCurrentStep, steps],
+    [getFirstStep, setCurrentStep],
   )
   const next = useCallback(() => _next(tourKey), [_next, tourKey])
   const prev = useCallback(() => _prev(tourKey), [_prev, tourKey])
@@ -230,10 +227,11 @@ export const TourGuideProvider = ({
 
   useEffect(() => {
     if (mountedRef.current) {
-      if (steps[tourKey]) {
+      if (stepsRef.current[tourKey]) {
         if (
-          (Array.isArray(steps[tourKey]) && steps[tourKey].length > 0) ||
-          Object.entries(steps[tourKey]).length > 0
+          (Array.isArray(stepsRef.current[tourKey]) &&
+            stepsRef.current[tourKey].length > 0) ||
+          Object.entries(stepsRef.current[tourKey]).length > 0
         ) {
           setCanStartFlag((obj) => {
             const newObj = { ...obj }
@@ -254,7 +252,7 @@ export const TourGuideProvider = ({
         }
       }
     }
-  }, [mountedRef, start, startAtMount, steps, tourKey])
+  }, [mountedRef, start, startAtMount, tourKey])
 
   const isFirstStep = useMemo(() => {
     const obj: Ctx<boolean> = {} as Ctx<boolean>
