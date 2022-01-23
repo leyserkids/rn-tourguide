@@ -63,29 +63,30 @@ export const useTourGuideController = (tourKey?: string) => {
     return eventEmitter ? () => eventEmitter[key] : undefined
   }, [getEventEmitter, key])
 
+  const _canStart = useCallback(() => canStart(key), [canStart, key])
+
   React.useEffect(() => {
     setTourKey && setTourKey(key)
   }, [key, setTourKey])
 
-  return useMemo(() => {
-    return {
+  return useMemo(
+    () => ({
       start: _start,
       stop: _stop,
       getEventEmitter: _getEventEmitter,
       getCurrentStep: _getCurrentStep,
-      canStart,
-      tourKey: key,
+      canStart: _canStart,
       TourGuideZone: KeyedTourGuideZone,
       TourGuideZoneByPosition: KeyedTourGuideZoneByPosition,
-    }
-  }, [
-    KeyedTourGuideZone,
-    KeyedTourGuideZoneByPosition,
-    _getCurrentStep,
-    _getEventEmitter,
-    _start,
-    _stop,
-    canStart,
-    key,
-  ])
+    }),
+    [
+      KeyedTourGuideZone,
+      KeyedTourGuideZoneByPosition,
+      _canStart,
+      _getCurrentStep,
+      _getEventEmitter,
+      _start,
+      _stop,
+    ],
+  )
 }
