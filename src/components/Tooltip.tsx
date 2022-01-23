@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 
 import { Button } from './Button'
 import styles from './style'
@@ -24,19 +24,9 @@ export const Tooltip = ({
   currentStep,
   labels,
 }: TooltipProps) => (
-  <View
-    style={{
-      borderRadius: 16,
-      paddingTop: 24,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingBottom: 16,
-      width: '80%',
-      backgroundColor: '#ffffffef',
-    }}
-  >
+  <View style={style.wrapper}>
     <View style={styles.tooltipContainer}>
-      <Text testID='stepDescription' style={styles.tooltipText}>
+      <Text testID="stepDescription" style={styles.tooltipText}>
         {currentStep && currentStep.text}
       </Text>
     </View>
@@ -63,3 +53,15 @@ export const Tooltip = ({
     </View>
   </View>
 )
+
+const style = StyleSheet.create({
+  wrapper: {
+    borderRadius: 16,
+    paddingTop: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 16,
+    width: '80%',
+    backgroundColor: '#ffffffef',
+  },
+})

@@ -34,7 +34,7 @@ export const useTourGuideController = (tourKey?: string) => {
 
   React.useEffect(() => {
     setTourKey && setTourKey(key)
-  }, [])
+  }, [key, setTourKey])
 
   const KeyedTourGuideZone: React.FC<Omit<TourGuideZoneProps, 'tourKey'>> =
     React.useCallback(

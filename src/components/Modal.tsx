@@ -285,8 +285,8 @@ export class Modal extends React.Component<ModalProps, State> {
     const { opacity } = this.state
     return (
       <Animated.View
-        pointerEvents='box-none'
-        key='tooltip'
+        pointerEvents="box-none"
+        key="tooltip"
         style={[
           styles.tooltip,
           this.props.tooltipStyle,
@@ -317,13 +317,13 @@ export class Modal extends React.Component<ModalProps, State> {
     }
     return (
       <View
-        style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}
-        pointerEvents='box-none'
+        style={[StyleSheet.absoluteFill, style.background]}
+        pointerEvents="box-none"
       >
         <View
           style={styles.container}
           onLayout={this.handleLayoutChange}
-          pointerEvents='box-none'
+          pointerEvents="box-none"
         >
           {contentVisible && (
             <>
@@ -336,3 +336,9 @@ export class Modal extends React.Component<ModalProps, State> {
     )
   }
 }
+
+const style = StyleSheet.create({
+  background: {
+    backgroundColor: 'transparent',
+  },
+})

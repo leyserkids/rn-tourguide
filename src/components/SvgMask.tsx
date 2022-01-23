@@ -193,7 +193,7 @@ export class SvgMask extends Component<Props, State> {
         onPress={dismissOnPress ? stop : undefined}
       >
         <Svg
-          pointerEvents='none'
+          pointerEvents="none"
           width={this.state.canvasSize.x}
           height={this.state.canvasSize.y}
         >
@@ -201,7 +201,7 @@ export class SvgMask extends Component<Props, State> {
             ref={this.mask}
             fill={this.props.backdropColor}
             strokeWidth={0}
-            fillRule='evenodd'
+            fillRule="evenodd"
             d={this.firstPath}
             opacity={this.state.opacity as any}
           />

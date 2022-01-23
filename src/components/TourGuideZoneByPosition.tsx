@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { useMemo } from 'react'
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native'
 import { BorderRadiusObject, Shape } from '../types'
 import { TourGuideZone } from './TourGuideZone'
@@ -38,13 +38,26 @@ export const TourGuideZoneByPosition = ({
   borderRadiusObject,
   text,
 }: TourGuideZoneByPositionProps) => {
+  const tourGuideZoneStyle = useMemo<StyleProp<ViewStyle>>(
+    () => ({
+      position: 'absolute',
+      height,
+      width,
+      top,
+      right,
+      bottom,
+      left,
+    }),
+    [bottom, height, left, right, top, width],
+  )
+
   if (!isTourGuide) {
     return null
   }
 
   return (
     <View
-      pointerEvents='none'
+      pointerEvents="none"
       style={[StyleSheet.absoluteFillObject, containerStyle]}
     >
       <TourGuideZone
@@ -58,15 +71,7 @@ export const TourGuideZoneByPosition = ({
           borderRadiusObject,
           text,
         }}
-        style={{
-          position: 'absolute',
-          height,
-          width,
-          top,
-          right,
-          bottom,
-          left,
-        }}
+        style={tourGuideZoneStyle}
       />
     </View>
   )
