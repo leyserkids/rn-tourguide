@@ -72,14 +72,14 @@ export const TourGuideProvider = ({
     _default: false,
   })
 
-  const startTries = useRef<number>(0)
-  const { current: mounted } = useIsMounted()
+  const startTriesRef = useRef<number>(0)
+  const mountedRef = useIsMounted()
 
-  const { current: eventEmitter } = useRef<Ctx<Emitter>>({
+  const eventEmitterRef = useRef<Ctx<Emitter>>({
     _default: new mitt(),
   })
 
-  const modal = useRef<any>()
+  const modalRef = useRef<any>()
 
   const moveToCurrentStep = useCallback(
     async (key: string) => {
@@ -92,7 +92,7 @@ export const TourGuideProvider = ({
       ) {
         return
       }
-      await modal.current?.animateMove({
+      await modalRef.current?.animateMove({
         width: size.width + OFFSET_WIDTH,
         height: size.height + OFFSET_WIDTH,
         left: Math.round(size.x) - OFFSET_WIDTH / 2,
@@ -108,12 +108,12 @@ export const TourGuideProvider = ({
         updateCurrentStep((preCurrentStep) => {
           const newStep = { ...preCurrentStep }
           newStep[key] = step
-          eventEmitter[key]?.emit('stepChange', step)
+          eventEmitterRef.current[key]?.emit('stepChange', step)
           return newStep
         })
         resolve()
       }),
-    [eventEmitter],
+    [],
   )
 
   const getNextStep = useCallback(
@@ -155,26 +155,23 @@ export const TourGuideProvider = ({
     [setCurrentStep],
   )
 
-  const registerStep = useCallback(
-    (key: string, step: IStep) => {
-      setSteps((previousSteps) => {
-        const newSteps = { ...previousSteps }
-        newSteps[key] = {
-          ...previousSteps[key],
-          [step.name]: step,
-        }
-        return newSteps
-      })
-      if (!eventEmitter[key]) {
-        eventEmitter[key] = new mitt()
+  const registerStep = useCallback((key: string, step: IStep) => {
+    setSteps((previousSteps) => {
+      const newSteps = { ...previousSteps }
+      newSteps[key] = {
+        ...previousSteps[key],
+        [step.name]: step,
       }
-    },
-    [eventEmitter],
-  )
+      return newSteps
+    })
+    if (!eventEmitterRef.current[key]) {
+      eventEmitterRef.current[key] = new mitt()
+    }
+  }, [])
 
   const unregisterStep = useCallback(
     (key: string, stepName: string) => {
-      if (!mounted) {
+      if (!mountedRef.current) {
         return
       }
       setSteps((previousSteps) => {
@@ -185,7 +182,7 @@ export const TourGuideProvider = ({
         return newSteps
       })
     },
-    [mounted],
+    [mountedRef],
   )
 
   const getCurrentStep = useCallback(
@@ -199,31 +196,31 @@ export const TourGuideProvider = ({
         ? (steps[key] as StepObject)[fromStep]
         : getFirstStep(key)
 
-      if (startTries.current > MAX_START_TRIES) {
-        startTries.current = 0
+      if (startTriesRef.current > MAX_START_TRIES) {
+        startTriesRef.current = 0
         return
       }
       if (!newCurrentStep) {
-        startTries.current += 1
+        startTriesRef.current += 1
         requestAnimationFrame(() => start(key, fromStep))
       } else {
-        eventEmitter[key]?.emit('start')
+        eventEmitterRef.current[key]?.emit('start')
         await setCurrentStep(key, newCurrentStep!)
         setVisible(key, true)
-        startTries.current = 0
+        startTriesRef.current = 0
       }
     },
-    [eventEmitter, getFirstStep, setCurrentStep, steps],
+    [getFirstStep, setCurrentStep, steps],
   )
   const next = useCallback(() => _next(tourKey), [_next, tourKey])
   const prev = useCallback(() => _prev(tourKey), [_prev, tourKey])
   const stop = useCallback(() => _stop(tourKey), [_stop, tourKey])
 
   useEffect(() => {
-    if (mounted && visible[tourKey] === false) {
-      eventEmitter[tourKey]?.emit('stop')
+    if (mountedRef.current && visible[tourKey] === false) {
+      eventEmitterRef.current[tourKey]?.emit('stop')
     }
-  }, [eventEmitter, mounted, tourKey, visible])
+  }, [mountedRef, tourKey, visible])
 
   useEffect(() => {
     if (visible[tourKey] || currentStep[tourKey]) {
@@ -232,7 +229,7 @@ export const TourGuideProvider = ({
   }, [visible, currentStep, tourKey, moveToCurrentStep])
 
   useEffect(() => {
-    if (mounted) {
+    if (mountedRef.current) {
       if (steps[tourKey]) {
         if (
           (Array.isArray(steps[tourKey]) && steps[tourKey].length > 0) ||
@@ -257,7 +254,7 @@ export const TourGuideProvider = ({
         }
       }
     }
-  }, [mounted, start, startAtMount, steps, tourKey])
+  }, [mountedRef, start, startAtMount, steps, tourKey])
 
   const isFirstStep = useMemo(() => {
     const obj: Ctx<boolean> = {} as Ctx<boolean>
@@ -283,7 +280,7 @@ export const TourGuideProvider = ({
   const ctx = useMemo(
     () => ({
       canStart,
-      eventEmitter,
+      eventEmitter: eventEmitterRef.current,
       registerStep,
       unregisterStep,
       getCurrentStep,
@@ -291,15 +288,7 @@ export const TourGuideProvider = ({
       stop,
       setTourKey,
     }),
-    [
-      canStart,
-      eventEmitter,
-      getCurrentStep,
-      registerStep,
-      start,
-      stop,
-      unregisterStep,
-    ],
+    [canStart, getCurrentStep, registerStep, start, stop, unregisterStep],
   )
 
   const modalProps = useMemo(
@@ -346,7 +335,7 @@ export const TourGuideProvider = ({
     <View style={containerStyle}>
       <TourGuideContext.Provider value={ctx}>
         {children}
-        <Modal ref={modal} {...modalProps} />
+        <Modal ref={modalRef} {...modalProps} />
       </TourGuideContext.Provider>
     </View>
   )
