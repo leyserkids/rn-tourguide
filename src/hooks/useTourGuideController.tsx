@@ -1,13 +1,15 @@
 import React, { useCallback, useMemo } from 'react'
-import { TourGuideContext } from '../components/TourGuideContext'
+import { Emitter, TourGuideContext } from '../components/TourGuideContext'
 import { TourGuideZone, TourGuideZoneProps } from '../components/TourGuideZone'
 import {
   TourGuideZoneByPosition,
   TourGuideZoneByPositionProps,
 } from '../components/TourGuideZoneByPosition'
 
+type GetEventEmitter = () => Emitter
+
 export const useTourGuideController = (tourKey?: string) => {
-  const { start, canStart, stop, eventEmitter, getCurrentStep, setTourKey } =
+  const { start, canStart, stop, getEventEmitter, getCurrentStep, setTourKey } =
     React.useContext(TourGuideContext)
 
   let key = tourKey ?? '_default'
@@ -56,30 +58,34 @@ export const useTourGuideController = (tourKey?: string) => {
     [key],
   )
 
+  const _getEventEmitter = useMemo<GetEventEmitter | undefined>(() => {
+    const eventEmitter = getEventEmitter ? getEventEmitter() : undefined
+    return eventEmitter ? () => eventEmitter[key] : undefined
+  }, [getEventEmitter, key])
+
   React.useEffect(() => {
     setTourKey && setTourKey(key)
   }, [key, setTourKey])
 
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    return {
       start: _start,
       stop: _stop,
-      eventEmitter: eventEmitter ? eventEmitter[key] : undefined,
+      getEventEmitter: _getEventEmitter,
       getCurrentStep: _getCurrentStep,
-      canStart: canStart ? canStart[key] : undefined,
+      canStart,
       tourKey: key,
       TourGuideZone: KeyedTourGuideZone,
       TourGuideZoneByPosition: KeyedTourGuideZoneByPosition,
-    }),
-    [
-      KeyedTourGuideZone,
-      KeyedTourGuideZoneByPosition,
-      _getCurrentStep,
-      _start,
-      _stop,
-      canStart,
-      eventEmitter,
-      key,
-    ],
-  )
+    }
+  }, [
+    KeyedTourGuideZone,
+    KeyedTourGuideZoneByPosition,
+    _getCurrentStep,
+    _getEventEmitter,
+    _start,
+    _stop,
+    canStart,
+    key,
+  ])
 }

@@ -68,7 +68,7 @@ export const TourGuideProvider = ({
   })
   const [steps, setSteps] = useState<Ctx<Steps>>({ _default: [] })
 
-  const [canStart, setCanStart] = useState<Ctx<boolean>>({
+  const [canStartFlag, setCanStartFlag] = useState<Ctx<boolean>>({
     _default: false,
   })
 
@@ -235,7 +235,7 @@ export const TourGuideProvider = ({
           (Array.isArray(steps[tourKey]) && steps[tourKey].length > 0) ||
           Object.entries(steps[tourKey]).length > 0
         ) {
-          setCanStart((obj) => {
+          setCanStartFlag((obj) => {
             const newObj = { ...obj }
             newObj[tourKey] = true
             return newObj
@@ -246,7 +246,7 @@ export const TourGuideProvider = ({
             start('_default')
           }
         } else {
-          setCanStart((obj) => {
+          setCanStartFlag((obj) => {
             const newObj = { ...obj }
             newObj[tourKey] = false
             return newObj
@@ -277,10 +277,17 @@ export const TourGuideProvider = ({
     [wrapperStyle],
   )
 
+  const canStart = useCallback(
+    (key: string = '_default') => canStartFlag[key],
+    [canStartFlag],
+  )
+
+  const getEventEmitter = useCallback(() => eventEmitterRef.current, [])
+
   const ctx = useMemo(
     () => ({
       canStart,
-      eventEmitter: eventEmitterRef.current,
+      getEventEmitter,
       registerStep,
       unregisterStep,
       getCurrentStep,
@@ -288,7 +295,15 @@ export const TourGuideProvider = ({
       stop,
       setTourKey,
     }),
-    [canStart, getCurrentStep, registerStep, start, stop, unregisterStep],
+    [
+      canStart,
+      getCurrentStep,
+      getEventEmitter,
+      registerStep,
+      start,
+      stop,
+      unregisterStep,
+    ],
   )
 
   const modalProps = useMemo(
