@@ -9,6 +9,7 @@ import {
   StyleSheet,
   View,
   ViewStyle,
+  Modal as RNModal,
 } from 'react-native'
 import {
   BorderRadiusObject,
@@ -330,23 +331,31 @@ export class Modal extends React.Component<ModalProps, State> {
       return null
     }
     return (
-      <View
-        style={[StyleSheet.absoluteFill, style.background]}
-        pointerEvents="box-none"
+      <RNModal
+        animationType="none"
+        visible={containerVisible}
+        onRequestClose={noop}
+        transparent
+        supportedOrientations={['portrait', 'landscape']}
       >
         <View
-          style={styles.container}
-          onLayout={this.handleLayoutChange}
+          style={[StyleSheet.absoluteFill, style.background]}
           pointerEvents="box-none"
         >
-          {contentVisible && (
-            <>
-              {this.renderMask()}
-              {this.renderTooltip()}
-            </>
-          )}
+          <View
+            style={styles.container}
+            onLayout={this.handleLayoutChange}
+            pointerEvents="box-none"
+          >
+            {contentVisible && (
+              <>
+                {this.renderMask()}
+                {this.renderTooltip()}
+              </>
+            )}
+          </View>
         </View>
-      </View>
+      </RNModal>
     )
   }
 }
@@ -356,3 +365,5 @@ const style = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 })
+
+function noop() {}
