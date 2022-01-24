@@ -65,10 +65,6 @@ export const useTourGuideController = (tourKey?: string) => {
 
   const _canStart = useCallback(() => canStart(key), [canStart, key])
 
-  React.useEffect(() => {
-    setTourKey && setTourKey(key)
-  }, [key, setTourKey])
-
   return useMemo(
     () => ({
       start: _start,

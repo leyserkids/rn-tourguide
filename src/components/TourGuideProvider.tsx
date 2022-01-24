@@ -71,6 +71,19 @@ export const TourGuideProvider = ({
   const canStartFlagRef = useRef<Ctx<boolean>>({
     _default: false,
   })
+  const updateCanStartFlag = useCallback((key: string) => {
+    const newObj = { ...canStartFlagRef.current }
+    if (
+      (Array.isArray(stepsRef.current[key]) &&
+        stepsRef.current[key].length > 0) ||
+      Object.entries(stepsRef.current[key]).length > 0
+    ) {
+      newObj[key] = true
+    } else {
+      newObj[key] = false
+    }
+    canStartFlagRef.current = newObj
+  }, [])
 
   const startTriesRef = useRef<number>(0)
   const mountedRef = useIsMounted()
@@ -155,18 +168,23 @@ export const TourGuideProvider = ({
     [setCurrentStep],
   )
 
-  const registerStep = useCallback((key: string, step: IStep) => {
-    const newSteps = { ...stepsRef.current }
-    newSteps[key] = {
-      ...stepsRef.current[key],
-      [step.name]: step,
-    }
-    stepsRef.current = newSteps
+  const registerStep = useCallback(
+    (key: string, step: IStep) => {
+      const newSteps = { ...stepsRef.current }
+      newSteps[key] = {
+        ...stepsRef.current[key],
+        [step.name]: step,
+      }
+      stepsRef.current = newSteps
 
-    if (!eventEmitterRef.current[key]) {
-      eventEmitterRef.current[key] = new mitt()
-    }
-  }, [])
+      updateCanStartFlag(key)
+
+      if (!eventEmitterRef.current[key]) {
+        eventEmitterRef.current[key] = new mitt()
+      }
+    },
+    [updateCanStartFlag],
+  )
 
   const unregisterStep = useCallback(
     (key: string, stepName: string) => {
@@ -178,8 +196,10 @@ export const TourGuideProvider = ({
         .filter(([k]) => k !== stepName)
         .reduce((obj, [k, v]) => Object.assign(obj, { [k]: v }), {})
       stepsRef.current = newSteps
+
+      updateCanStartFlag(key)
     },
-    [mountedRef],
+    [mountedRef, updateCanStartFlag],
   )
 
   // 'getCurrentStep' need passdown, should make it stable not change.
@@ -189,6 +209,11 @@ export const TourGuideProvider = ({
   }, [currentStep])
   const getCurrentStep = useCallback(
     (key: string) => currentStepRef.current[key],
+    [],
+  )
+
+  const canStart = useCallback(
+    (key: string = '_default') => canStartFlagRef.current[key],
     [],
   )
 
@@ -239,28 +264,17 @@ export const TourGuideProvider = ({
   useEffect(() => {
     if (mountedRef.current) {
       if (stepsRef.current[tourKey]) {
-        if (
-          (Array.isArray(stepsRef.current[tourKey]) &&
-            stepsRef.current[tourKey].length > 0) ||
-          Object.entries(stepsRef.current[tourKey]).length > 0
-        ) {
-          const newObj = { ...canStartFlagRef.current }
-          newObj[tourKey] = true
-          canStartFlagRef.current = newObj
-
+        updateCanStartFlag(tourKey)
+        if (canStart(tourKey)) {
           if (typeof startAtMount === 'string') {
             start(startAtMount)
           } else if (startAtMount) {
             start('_default')
           }
-        } else {
-          const newObj = { ...canStartFlagRef.current }
-          newObj[tourKey] = false
-          canStartFlagRef.current = newObj
         }
       }
     }
-  }, [mountedRef, start, startAtMount, tourKey])
+  }, [canStart, mountedRef, start, startAtMount, tourKey, updateCanStartFlag])
 
   const isFirstStep = useMemo(() => {
     const obj: Ctx<boolean> = {} as Ctx<boolean>
@@ -281,11 +295,6 @@ export const TourGuideProvider = ({
   const containerStyle = useMemo(
     () => StyleSheet.flatten([styles.container, wrapperStyle]),
     [wrapperStyle],
-  )
-
-  const canStart = useCallback(
-    (key: string = '_default') => canStartFlagRef.current[key],
-    [],
   )
 
   const getEventEmitter = useCallback(() => eventEmitterRef.current, [])
