@@ -7,20 +7,20 @@ import { Wrapper } from './Wrapper'
 export interface TourGuideZoneProps {
   zone: number
   tourKey?: string
-  isTourGuide?: boolean
   text?: string
+  active?: boolean
   shape?: Shape
   maskOffset?: number
   borderRadius?: number
-  children?: React.ReactNode
   style?: StyleProp<ViewStyle>
   keepTooltipPosition?: boolean
   tooltipBottomOffset?: number
   borderRadiusObject?: BorderRadiusObject
+  children?: React.ReactNode
 }
 
 export const TourGuideZone = ({
-  isTourGuide = true,
+  active = true,
   tourKey = '_default',
   zone,
   children,
@@ -33,7 +33,7 @@ export const TourGuideZone = ({
   tooltipBottomOffset,
   borderRadiusObject,
 }: TourGuideZoneProps) => {
-  if (!isTourGuide) {
+  if (!active) {
     return <>{children}</>
   }
 

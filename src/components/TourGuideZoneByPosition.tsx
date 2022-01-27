@@ -6,7 +6,7 @@ import { TourGuideZone } from './TourGuideZone'
 export interface TourGuideZoneByPositionProps {
   zone: number
   tourKey?: string
-  isTourGuide?: boolean
+  active?: boolean
   top?: number | string
   left?: number | string
   right?: number | string
@@ -22,7 +22,7 @@ export interface TourGuideZoneByPositionProps {
 }
 
 export const TourGuideZoneByPosition = ({
-  isTourGuide,
+  active,
   zone,
   tourKey = '_default',
   width,
@@ -51,7 +51,7 @@ export const TourGuideZoneByPosition = ({
     [bottom, height, left, right, top, width],
   )
 
-  if (!isTourGuide) {
+  if (!active) {
     return null
   }
 
@@ -61,7 +61,7 @@ export const TourGuideZoneByPosition = ({
       style={[StyleSheet.absoluteFillObject, containerStyle]}
     >
       <TourGuideZone
-        isTourGuide
+        active
         {...{
           tourKey,
           zone,
