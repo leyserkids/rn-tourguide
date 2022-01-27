@@ -11,6 +11,7 @@ interface Props {
   order: number
   tourKey: string
   active?: boolean
+  moveIntoView?: () => void | Promise<void>
   shape?: Shape
   context: ITourGuideContext
   children?: any

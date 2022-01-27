@@ -96,6 +96,7 @@ export const TourGuideProvider = ({
 
   const moveToCurrentStep = useCallback(
     async (key: string) => {
+      await currentStep[key]?.moveIntoView?.()
       const size = await currentStep[key]?.target.measure()
       if (
         isNaN(size.width) ||

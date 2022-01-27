@@ -9,6 +9,7 @@ export interface TourGuideZoneProps {
   tourKey?: string
   text?: string
   active?: boolean
+  moveIntoView?: () => void | Promise<void>
   shape?: Shape
   maskOffset?: number
   borderRadius?: number
@@ -26,6 +27,7 @@ export const TourGuideZone = ({
   children,
   shape,
   text,
+  moveIntoView,
   maskOffset,
   borderRadius,
   style,
@@ -44,6 +46,7 @@ export const TourGuideZone = ({
       name={`${zone}`}
       {...{
         tourKey,
+        moveIntoView,
         shape,
         maskOffset,
         borderRadius,

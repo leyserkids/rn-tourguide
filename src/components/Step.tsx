@@ -10,6 +10,7 @@ interface Props {
   tourKey: string
   shape?: Shape
   active?: boolean
+  moveIntoView?: () => void | Promise<void>
   maskOffset?: number
   borderRadius?: number
   children: React.ReactNode
