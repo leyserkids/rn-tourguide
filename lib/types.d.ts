@@ -3,6 +3,7 @@ export interface IStep {
     name: string;
     order: number;
     visible?: boolean;
+    moveIntoView?: () => void | Promise<void>;
     target: any;
     text: string;
     wrapper: any;

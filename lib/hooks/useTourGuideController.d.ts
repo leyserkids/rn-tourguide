@@ -9,7 +9,7 @@ export declare const useTourGuideController: (tourKey?: string | undefined) => {
     getEventEmitter: GetEventEmitter | undefined;
     getCurrentStep: () => import("..").IStep | undefined;
     canStart: () => boolean;
-    TourGuideZone: React.FC<Pick<TourGuideZoneProps, "borderRadius" | "borderRadiusObject" | "shape" | "maskOffset" | "text" | "children" | "keepTooltipPosition" | "tooltipBottomOffset" | "style" | "isTourGuide" | "zone">>;
-    TourGuideZoneByPosition: React.FC<Pick<TourGuideZoneByPositionProps, "borderRadiusObject" | "shape" | "text" | "keepTooltipPosition" | "tooltipBottomOffset" | "isTourGuide" | "zone" | "left" | "right" | "width" | "height" | "bottom" | "top" | "containerStyle">>;
+    TourGuideZone: React.FC<Omit<TourGuideZoneProps, "tourKey">>;
+    TourGuideZoneByPosition: React.FC<Omit<TourGuideZoneByPositionProps, "tourKey">>;
 };
 export {};

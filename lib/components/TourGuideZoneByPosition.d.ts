@@ -4,7 +4,7 @@ import { BorderRadiusObject, Shape } from '../types';
 export interface TourGuideZoneByPositionProps {
     zone: number;
     tourKey?: string;
-    isTourGuide?: boolean;
+    active?: boolean;
     top?: number | string;
     left?: number | string;
     right?: number | string;
@@ -18,4 +18,4 @@ export interface TourGuideZoneByPositionProps {
     tooltipBottomOffset?: number;
     text?: string;
 }
-export declare const TourGuideZoneByPosition: ({ isTourGuide, zone, tourKey, width, height, top, left, right, bottom, shape, containerStyle, keepTooltipPosition, tooltipBottomOffset, borderRadiusObject, text, }: TourGuideZoneByPositionProps) => JSX.Element | null;
+export declare const TourGuideZoneByPosition: ({ active, zone, tourKey, width, height, top, left, right, bottom, shape, containerStyle, keepTooltipPosition, tooltipBottomOffset, borderRadiusObject, text, }: TourGuideZoneByPositionProps) => JSX.Element | null;
