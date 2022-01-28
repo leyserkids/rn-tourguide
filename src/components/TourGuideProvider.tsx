@@ -96,7 +96,14 @@ export const TourGuideProvider = ({
 
   const moveToCurrentStep = useCallback(
     async (key: string) => {
-      await currentStep[key]?.moveIntoView?.()
+      try {
+        await currentStep[key]?.moveIntoView?.()
+      } catch (error) {
+        if (__DEV__) {
+          console.warn('[rn-tourguide] moveIntoView() throw error: ', error)
+        }
+      }
+
       const size = await currentStep[key]?.target.measure()
       if (
         isNaN(size.width) ||
@@ -106,6 +113,7 @@ export const TourGuideProvider = ({
       ) {
         return
       }
+
       await modalRef.current?.animateMove({
         width: size.width + OFFSET_WIDTH,
         height: size.height + OFFSET_WIDTH,
