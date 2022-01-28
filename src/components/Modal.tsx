@@ -222,11 +222,8 @@ export class Modal extends React.Component<ModalProps, State> {
       useNativeDriver: true,
     })
     this.state.opacity.setValue(0)
-    if (
-      // @ts-ignore
-      toValue !== this.state.tooltipTranslateY._value &&
-      !this.props.currentStep?.keepTooltipPosition
-    ) {
+
+    if (!this.props.currentStep?.keepTooltipPosition) {
       Animated.parallel([translateAnim, opacityAnim]).start()
     } else {
       opacityAnim.start()
