@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React from 'react'
 import {
   Animated,
   Dimensions,
@@ -9,11 +9,10 @@ import {
   View,
   ViewStyle,
   TouchableWithoutFeedback,
-  ScaledSize,
 } from 'react-native'
 import Svg, { PathProps } from 'react-native-svg'
-import { IStep, KeyIterable, ValueXY } from '../types'
-import { notShallowEqual, svgMaskPathMorph } from '../utilities'
+import { IStep, ValueXY } from '../types'
+import { svgMaskPathMorph } from '../utilities'
 import { AnimatedSvgPath } from './AnimatedPath'
 
 interface Props {
@@ -30,91 +29,45 @@ interface Props {
   stop: () => void
 }
 
-interface State {
-  size: ValueXY
-  position: ValueXY
-  opacity: Animated.Value
-  animation: Animated.Value
-  canvasSize: ValueXY
-  previousPath: string
-}
-
 const IS_WEB = Platform.OS !== 'web'
 
-export class SvgMask extends Component<Props, State> {
-  static defaultProps = {
-    easing: Easing.linear,
-    size: { x: 0, y: 0 },
-    position: { x: 0, y: 0 },
-    maskOffset: 0,
-    isHorizontal: false,
-  }
+export const SvgMask: React.FC<Props> = ({
+  size = { x: 0, y: 0 },
+  position = { x: 0, y: 0 },
+  style,
+  animationDuration,
+  backdropColor,
+  dismissOnPress,
+  maskOffset = 0,
+  borderRadius,
+  currentStep,
+  easing = Easing.linear,
+  stop,
+}) => {
+  const windowDimensions = Dimensions.get('window')
+  const mask = React.useRef<PathProps>(null)
+  const rafID = React.useRef<number>()
 
-  listenerID: string
-  rafID: number
-  mask: React.RefObject<PathProps> = React.createRef()
+  const firstPath = `M0,0H${windowDimensions.width}V${
+    windowDimensions.height
+  }H0V0ZM${windowDimensions.width / 2},${
+    windowDimensions.height / 2
+  } h 1 v 1 h -1 Z`
 
-  windowDimensions: ScaledSize | null = null
-  firstPath: string | undefined
+  const [state, setState] = React.useState({
+    canvasSize: {
+      x: windowDimensions.width,
+      y: windowDimensions.height,
+    },
+    opacity: new Animated.Value(0),
+    animation: new Animated.Value(0),
+    previousPath: firstPath,
+  })
 
-  constructor(props: Props) {
-    super(props)
-
-    this.windowDimensions = Dimensions.get('window')
-
-    this.firstPath = `M0,0H${this.windowDimensions.width}V${
-      this.windowDimensions.height
-    }H0V0ZM${this.windowDimensions.width / 2},${
-      this.windowDimensions.height / 2
-    } h 1 v 1 h -1 Z`
-
-    this.state = {
-      canvasSize: {
-        x: this.windowDimensions.width,
-        y: this.windowDimensions.height,
-      },
-      size: props.size,
-      position: props.position,
-      opacity: new Animated.Value(0),
-      animation: new Animated.Value(0),
-      previousPath: this.firstPath,
-    }
-
-    this.listenerID = this.state.animation.addListener(this.animationListener)
-  }
-
-  shouldComponentUpdate(nextProps: KeyIterable, nextState: KeyIterable) {
-    return (
-      notShallowEqual(this.props, nextProps) ||
-      notShallowEqual(this.state, nextState)
-    )
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (
-      prevProps.position !== this.props.position ||
-      prevProps.size !== this.props.size
-    ) {
-      this.animate()
-    }
-  }
-
-  componentWillUnmount() {
-    if (this.listenerID) {
-      this.state.animation.removeListener(this.listenerID)
-    }
-    if (this.rafID) {
-      cancelAnimationFrame(this.rafID)
-    }
-  }
-
-  getPath = () => {
-    const { previousPath, animation } = this.state
-    const { size, position, currentStep, maskOffset, borderRadius } = this.props
-
+  const getPath = React.useCallback(() => {
     return svgMaskPathMorph({
-      animation: animation as any,
-      previousPath,
+      animation: state.animation as any,
+      previousPath: state.previousPath,
       to: {
         position,
         size,
@@ -124,96 +77,118 @@ export class SvgMask extends Component<Props, State> {
         borderRadiusObject: currentStep?.borderRadiusObject,
       },
     })
-  }
+  }, [
+    state.animation,
+    state.previousPath,
+    position,
+    size,
+    currentStep,
+    maskOffset,
+    borderRadius,
+  ])
 
-  animationListener = () => {
-    const d = this.getPath()
-    this.rafID = requestAnimationFrame(() => {
-      if (this.mask && this.mask.current) {
+  const animationListener = React.useCallback(() => {
+    const d = getPath()
+    rafID.current = requestAnimationFrame(() => {
+      if (mask.current) {
         if (IS_WEB) {
           // @ts-ignore
-          this.mask.current.setNativeProps({ d })
+          mask.current.setNativeProps({ d })
         } else {
           // @ts-ignore
-          this.mask.current._touchableNode.setAttribute('d', d)
+          mask.current._touchableNode.setAttribute('d', d)
         }
       }
     })
-  }
+  }, [getPath])
 
-  animate = () => {
+  const animate = React.useCallback(() => {
     const animations = [
-      Animated.timing(this.state.animation, {
+      Animated.timing(state.animation, {
         toValue: 1,
-        duration: this.props.animationDuration,
-        easing: this.props.easing,
+        duration: animationDuration,
+        easing,
         useNativeDriver: false,
       }),
     ]
+
     // @ts-ignore
-    if (this.state.opacity._value !== 1) {
+    if (state.opacity._value !== 1) {
       animations.push(
-        Animated.timing(this.state.opacity, {
+        Animated.timing(state.opacity, {
           toValue: 1,
-          duration: this.props.animationDuration,
-          easing: this.props.easing,
+          duration: animationDuration,
+          easing,
           useNativeDriver: true,
         }),
       )
     }
+
     Animated.parallel(animations, { stopTogether: false }).start((result) => {
       if (result.finished) {
-        this.setState({ previousPath: this.getPath() }, () => {
-          // @ts-ignore
-          if (this.state.animation._value === 1) {
-            this.state.animation.setValue(0)
-          }
-        })
+        setState((prev) => ({ ...prev, previousPath: getPath() }))
+        // @ts-ignore
+        if (state.animation._value === 1) {
+          state.animation.setValue(0)
+        }
       }
     })
-  }
+  }, [state.animation, state.opacity, animationDuration, easing, getPath])
 
-  handleLayout = ({
+  React.useEffect(() => {
+    const listenerID = state.animation.addListener(animationListener)
+    return () => {
+      state.animation.removeListener(listenerID)
+      if (rafID.current) {
+        cancelAnimationFrame(rafID.current)
+      }
+    }
+  }, [state.animation, animationListener])
+
+  React.useEffect(() => {
+    animate()
+  }, [position, size, animate])
+
+  const handleLayout = ({
     nativeEvent: {
       layout: { width, height },
     },
   }: LayoutChangeEvent) => {
-    this.setState({
+    setState((prev) => ({
+      ...prev,
       canvasSize: {
         x: width,
         y: height,
       },
-    })
+    }))
   }
 
-  render() {
-    if (!this.state.canvasSize) {
-      return null
-    }
-    const { dismissOnPress, stop } = this.props
-    const Wrapper: any = dismissOnPress ? TouchableWithoutFeedback : View
+  if (!state.canvasSize) {
+    return null
+  }
 
-    return (
-      <Wrapper
-        style={this.props.style}
-        onLayout={this.handleLayout}
-        onPress={dismissOnPress ? stop : undefined}
+  const Wrapper: any = dismissOnPress ? TouchableWithoutFeedback : View
+
+  return (
+    <Wrapper
+      style={style}
+      onLayout={handleLayout}
+      onPress={dismissOnPress ? stop : undefined}
+    >
+      <Svg
+        pointerEvents="none"
+        width={state.canvasSize.x}
+        height={state.canvasSize.y}
       >
-        <Svg
-          pointerEvents="none"
-          width={this.state.canvasSize.x}
-          height={this.state.canvasSize.y}
-        >
-          <AnimatedSvgPath
-            ref={this.mask}
-            fill={this.props.backdropColor}
-            strokeWidth={0}
-            fillRule="evenodd"
-            d={this.firstPath}
-            opacity={this.state.opacity as any}
-          />
-        </Svg>
-      </Wrapper>
-    )
-  }
+        <AnimatedSvgPath
+          ref={mask}
+          fill={backdropColor}
+          strokeWidth={0}
+          fillRule="evenodd"
+          d={firstPath}
+          opacity={state.opacity as any}
+        />
+      </Svg>
+    </Wrapper>
+  )
 }

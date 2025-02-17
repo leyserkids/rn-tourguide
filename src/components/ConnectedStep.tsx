@@ -1,9 +1,6 @@
 import * as React from 'react'
-import { BorderRadiusObject, KeyIterable, Shape } from '../types'
-import { notShallowEqual } from '../utilities'
+import { BorderRadiusObject, Shape } from '../types'
 import { ITourGuideContext } from './TourGuideContext'
-
-declare var __TEST__: boolean
 
 interface Props {
   name: string
@@ -22,114 +19,52 @@ interface Props {
   tooltipBottomOffset?: number
 }
 
-export class ConnectedStep extends React.Component<Props> {
-  static defaultProps = {
-    active: true,
-  }
-  wrapper: any
+export const ConnectedStep: React.FC<Props> = ({
+  active = true,
+  children,
+  context,
+  tourKey,
+  name,
+  borderRadius,
+  ...otherProps
+}) => {
+  const wrapperRef = React.useRef<any>(null)
 
-  shouldComponentUpdate(nextProps: KeyIterable, nextState: KeyIterable) {
-    return (
-      notShallowEqual(this.props, nextProps) ||
-      notShallowEqual(this.state, nextState)
-    )
-  }
-
-  componentDidMount() {
-    if (this.props.active) {
-      this.register()
-    }
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.active !== prevProps.active) {
-      if (this.props.active) {
-        this.register()
-      } else {
-        this.unregister()
-      }
-    }
-  }
-
-  componentWillUnmount() {
-    this.unregister()
-  }
-
-  setNativeProps(obj: any) {
-    this.wrapper.setNativeProps(obj)
-  }
-
-  register() {
-    if (this.props.context && this.props.context.registerStep) {
-      this.props.context.registerStep(this.props.tourKey, {
-        target: this,
-        wrapper: this.wrapper,
-        ...this.props,
+  const register = React.useCallback(() => {
+    if (context && context.registerStep) {
+      context.registerStep(tourKey, {
+        target: null,
+        wrapper: wrapperRef.current,
+        name,
+        borderRadius,
+        ...otherProps,
       })
     } else {
       console.warn('context undefined')
     }
-  }
+  }, [context, tourKey, name, borderRadius, otherProps])
 
-  unregister() {
-    if (this.props.context && this.props.context.unregisterStep) {
-      this.props.context.unregisterStep(this.props.tourKey, this.props.name)
+  const unregister = React.useCallback(() => {
+    if (context && context.unregisterStep) {
+      context.unregisterStep(tourKey, name)
     } else {
       console.warn('unregisterStep undefined')
     }
-  }
+  }, [context, tourKey, name])
 
-  measure() {
-    if (typeof __TEST__ !== 'undefined' && __TEST__) {
-      return new Promise((resolve) =>
-        resolve({
-          x: 0,
-          y: 0,
-          width: 0,
-          height: 0,
-        }),
-      )
+  React.useEffect(() => {
+    if (active) {
+      register()
     }
-
-    return new Promise((resolve, reject) => {
-      const measure = () => {
-        // Wait until the wrapper element appears
-        if (this.wrapper && this.wrapper.measure) {
-          const { borderRadius } = this.props
-          this.wrapper.measure(
-            (
-              _ox: number,
-              _oy: number,
-              width: number,
-              height: number,
-              x: number,
-              y: number,
-            ) =>
-              resolve({
-                x: borderRadius ? x + borderRadius : x,
-                y,
-                width: borderRadius ? width - borderRadius * 2 : width,
-                height,
-              }),
-            reject,
-          )
-        } else {
-          requestAnimationFrame(measure)
-        }
-      }
-
-      requestAnimationFrame(measure)
-    })
-  }
-
-  render() {
-    const copilot = {
-      ref: (wrapper: any) => {
-        this.wrapper = wrapper
-      },
-      onLayout: () => {}, // Android hack
+    return () => {
+      unregister()
     }
+  }, [active, register, unregister])
 
-    return React.cloneElement(this.props.children, { copilot })
+  const copilot = {
+    ref: wrapperRef,
+    onLayout: () => {}, // Android hack
   }
+
+  return React.cloneElement(children, { copilot })
 }
