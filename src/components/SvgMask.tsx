@@ -65,7 +65,7 @@ export const SvgMask: React.FC<Props> = ({
   })
 
   const getPath = React.useCallback(() => {
-    return svgMaskPathMorph({
+    const path = svgMaskPathMorph({
       animation: state.animation as any,
       previousPath: state.previousPath,
       to: {
@@ -77,6 +77,7 @@ export const SvgMask: React.FC<Props> = ({
         borderRadiusObject: currentStep?.borderRadiusObject,
       },
     })
+    return path
   }, [
     state.animation,
     state.previousPath,

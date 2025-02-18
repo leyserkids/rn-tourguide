@@ -173,17 +173,14 @@ const getInterpolator = memoize(
       maxSegmentLength: getMaxSegmentLength(shape),
     }
     const optionsKeep = { single: true }
+    const defaultPath = defaultSvgPath({
+      size: sizeOffset(size, maskOffset),
+      position: positionOffset(position, maskOffset),
+      borderRadius,
+      borderRadiusObject,
+    })
     const getDefaultInterpolate = () =>
-      interpolate(
-        previousPath,
-        defaultSvgPath({
-          size: sizeOffset(size, maskOffset),
-          position: positionOffset(position, maskOffset),
-          borderRadius,
-          borderRadiusObject,
-        }),
-        options,
-      )
+      interpolate(previousPath, defaultPath, options)
     const getCircleInterpolator = () =>
       toCircle(
         previousPath,
