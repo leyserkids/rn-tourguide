@@ -10,10 +10,9 @@ import {
   TouchableWithoutFeedback,
   useAnimatedValue,
 } from 'react-native'
-import Svg from 'react-native-svg'
+import Svg, { Path as SvgPath } from 'react-native-svg'
 import { IStep, ValueXY } from '../types'
 import { svgMaskPathMorph } from '../utilities'
-import { AnimatedSvgPath } from './AnimatedPath'
 
 interface Props {
   size: ValueXY
@@ -56,51 +55,55 @@ export const SvgMask: React.FC<Props> = ({
     [windowDimensions.width, windowDimensions.height],
   )
   const previousPathRef = React.useRef(firstPath)
+  const pathRef = React.useRef(firstPath)
   const opacity = useAnimatedValue(0)
-  const [path, setPath] = React.useState('')
-  const pathRef = React.useRef(path)
-  const pathAnimation = useAnimatedValue(0)
+  const animation = useAnimatedValue(0)
+  const currentAnimationRef = React.useRef(0)
+  const svgPathRef = React.useRef<SvgPath>(null)
 
-  React.useEffect(() => {
-    pathRef.current = path
-  }, [path])
+  const getPath = React.useCallback(
+    (v: number) => {
+      const d = svgMaskPathMorph({
+        animation: v,
+        previousPath: previousPathRef.current,
+        to: {
+          position,
+          size,
+          shape: currentStep?.shape,
+          maskOffset: currentStep?.maskOffset || maskOffset,
+          borderRadius: currentStep?.borderRadius || borderRadius,
+          borderRadiusObject: currentStep?.borderRadiusObject,
+        },
+      })
+      return d
+    },
+    [
+      position,
+      size,
+      currentStep?.shape,
+      currentStep?.maskOffset,
+      currentStep?.borderRadius,
+      currentStep?.borderRadiusObject,
+      maskOffset,
+      borderRadius,
+    ],
+  )
 
-  const getPath = React.useCallback(() => {
-    const d = svgMaskPathMorph({
-      animation: pathAnimation as any,
-      previousPath: previousPathRef.current,
-      to: {
-        position,
-        size,
-        shape: currentStep?.shape,
-        maskOffset: currentStep?.maskOffset || maskOffset,
-        borderRadius: currentStep?.borderRadius || borderRadius,
-        borderRadiusObject: currentStep?.borderRadiusObject,
-      },
-    })
-    return d
-  }, [
-    pathAnimation,
-    position,
-    size,
-    currentStep?.shape,
-    currentStep?.maskOffset,
-    currentStep?.borderRadius,
-    currentStep?.borderRadiusObject,
-    maskOffset,
-    borderRadius,
-  ])
-
-  const animationListener = React.useCallback(() => {
-    const d = getPath()
-    rafID.current = requestAnimationFrame(() => {
-      setPath(d)
-    })
-  }, [getPath])
+  const animationListener = React.useCallback<Animated.ValueListenerCallback>(
+    (state) => {
+      const d = getPath(state.value)
+      rafID.current = requestAnimationFrame(() => {
+        svgPathRef.current?.setNativeProps({ d })
+        pathRef.current = d
+        currentAnimationRef.current = state.value
+      })
+    },
+    [getPath],
+  )
 
   const animate = React.useCallback(() => {
     const animations = [
-      Animated.timing(pathAnimation, {
+      Animated.timing(animation, {
         toValue: 1,
         duration: animationDuration,
         easing,
@@ -122,24 +125,21 @@ export const SvgMask: React.FC<Props> = ({
 
     Animated.parallel(animations, { stopTogether: false }).start((result) => {
       if (result.finished) {
-        previousPathRef.current = path
-        // @ts-ignore
-        if (pathAnimation._value === 1) {
-          pathAnimation.setValue(0)
-        }
+        previousPathRef.current = pathRef.current
+        animation.setValue(0)
       }
     })
-  }, [animationDuration, easing, opacity, path, pathAnimation])
+  }, [animationDuration, easing, opacity, animation])
 
   React.useEffect(() => {
-    const listenerID = pathAnimation.addListener(animationListener)
+    const listenerID = animation.addListener(animationListener)
     return () => {
-      pathAnimation.removeListener(listenerID)
+      animation.removeListener(listenerID)
       if (rafID.current) {
         cancelAnimationFrame(rafID.current)
       }
     }
-  }, [animationListener, pathAnimation])
+  }, [animationListener, animation])
 
   React.useEffect(() => {
     animate()
@@ -161,11 +161,12 @@ export const SvgMask: React.FC<Props> = ({
       onPress={dismissOnPress ? stop : undefined}
     >
       <Svg pointerEvents="none" width={canvasSize.x} height={canvasSize.y}>
-        <AnimatedSvgPath
+        <SvgPath
+          ref={svgPathRef}
           fill={backdropColor}
           strokeWidth={0}
           fillRule="evenodd"
-          d={path}
+          d={firstPath}
           opacity={opacity as any}
         />
       </Svg>

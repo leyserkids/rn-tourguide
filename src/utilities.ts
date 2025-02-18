@@ -244,9 +244,7 @@ export const svgMaskPathMorph = ({
     borderRadiusObject,
   )
 
-  return `${getCanvasPath(previousPath)}${interpolator(
-    clamp(animation._value, 0, 1),
-  )}`
+  return `${getCanvasPath(previousPath)}${interpolator(clamp(animation, 0, 1))}`
 }
 
 export function notShallowEqual<T extends KeyIterable>(o1: T, o2: T) {

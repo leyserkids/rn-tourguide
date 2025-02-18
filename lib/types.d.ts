@@ -29,11 +29,8 @@ export interface BorderRadiusObject {
     bottomLeft?: number;
 }
 export declare type SvgPath = string;
-export interface AnimJSValue {
-    _value: number;
-}
 export interface SVGMaskPathMorphParam {
-    animation: AnimJSValue;
+    animation: number;
     previousPath: SvgPath;
     to: {
         position: ValueXY;

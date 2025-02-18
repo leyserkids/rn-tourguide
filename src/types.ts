@@ -38,12 +38,8 @@ export interface BorderRadiusObject {
 
 export type SvgPath = string
 
-// with flubber
-export interface AnimJSValue {
-  _value: number
-}
 export interface SVGMaskPathMorphParam {
-  animation: AnimJSValue
+  animation: number
   previousPath: SvgPath
   to: {
     position: ValueXY
@@ -54,6 +50,7 @@ export interface SVGMaskPathMorphParam {
     borderRadiusObject?: BorderRadiusObject
   }
 }
+
 export type SVGMaskPathMorph = (
   param: SVGMaskPathMorphParam,
 ) => string | string[]
