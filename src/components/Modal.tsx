@@ -77,8 +77,6 @@ export const Modal = React.forwardRef<ModalRef, Omit<ModalProps, 'ref'>>(
       dismissOnPress,
     } = props
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [tooltip, setTooltip] = React.useState({})
     const [containerVisible, setContainerVisible] = React.useState(false)
     const [layout, setLayout] = React.useState<Layout>()
     const [size, setSize] = React.useState<ValueXY>()
@@ -94,8 +92,8 @@ export const Modal = React.forwardRef<ModalRef, Omit<ModalProps, 'ref'>>(
     })
 
     const handleLayoutChange = React.useCallback(
-      ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
-        layoutRef.current = layout
+      ({ nativeEvent }: LayoutChangeEvent) => {
+        layoutRef.current = nativeEvent.layout
       },
       [],
     )
@@ -111,14 +109,14 @@ export const Modal = React.forwardRef<ModalRef, Omit<ModalProps, 'ref'>>(
       }
 
       return new Promise((resolve) => {
-        const setLayout = () => {
+        const setLayoutFunc = () => {
           if (layoutRef.current && layoutRef.current.width !== 0) {
             resolve(layoutRef.current)
           } else {
-            requestAnimationFrame(setLayout)
+            requestAnimationFrame(setLayoutFunc)
           }
         }
-        setLayout()
+        setLayoutFunc()
       })
     }, [])
 
@@ -209,7 +207,6 @@ export const Modal = React.forwardRef<ModalRef, Omit<ModalProps, 'ref'>>(
           opacityAnim.start()
         }
 
-        setTooltip(tooltip)
         setLayout(measuredLayout)
         setSize({
           x: obj.width,

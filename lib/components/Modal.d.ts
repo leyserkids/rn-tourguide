@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Animated, LayoutChangeEvent, StyleProp, ViewStyle } from 'react-native';
-import { BorderRadiusObject, IStep, KeyIterable, Labels, ValueXY } from '../types';
+import { StyleProp, ViewStyle } from 'react-native';
+import { BorderRadiusObject, IStep, Labels } from '../types';
 import { TooltipProps } from './Tooltip';
 export interface ModalProps {
     ref: any;
@@ -9,35 +9,19 @@ export interface ModalProps {
     isFirstStep: boolean;
     isLastStep: boolean;
     animationDuration?: number;
-    tooltipComponent: React.ComponentType<TooltipProps>;
+    tooltipComponent?: React.ComponentType<TooltipProps>;
     tooltipStyle?: StyleProp<ViewStyle>;
     maskOffset?: number;
     borderRadius?: number;
     borderRadiusObject?: BorderRadiusObject;
-    androidStatusBarVisible: boolean;
-    backdropColor: string;
-    labels: Labels;
+    androidStatusBarVisible?: boolean;
+    backdropColor?: string;
+    labels?: Labels;
     dismissOnPress?: boolean;
-    easing: (value: number) => number;
+    easing?: (value: number) => number;
     stop: () => void;
     next: () => void;
     prev: () => void;
-}
-interface Layout {
-    x?: number;
-    y?: number;
-    width?: number;
-    height?: number;
-}
-interface State {
-    tooltip: object;
-    notAnimated?: boolean;
-    containerVisible: boolean;
-    layout?: Layout;
-    size?: ValueXY;
-    position?: ValueXY;
-    tooltipTranslateY: Animated.Value;
-    opacity: Animated.Value;
 }
 interface Move {
     top: number;
@@ -45,40 +29,8 @@ interface Move {
     width: number;
     height: number;
 }
-export declare class Modal extends React.Component<ModalProps, State> {
-    static defaultProps: {
-        easing: import("react-native").EasingFunction;
-        animationDuration: number;
-        tooltipComponent: any;
-        tooltipStyle: {};
-        androidStatusBarVisible: boolean;
-        backdropColor: string;
-        labels: {};
-        isHorizontal: boolean;
-    };
-    layout?: Layout;
-    state: {
-        tooltip: {};
-        containerVisible: boolean;
-        tooltipTranslateY: Animated.Value;
-        opacity: Animated.Value;
-        layout: undefined;
-        size: undefined;
-        position: undefined;
-    };
-    constructor(props: ModalProps);
-    shouldComponentUpdate(nextProps: KeyIterable, nextState: KeyIterable): boolean;
-    componentDidUpdate(prevProps: ModalProps): void;
-    handleLayoutChange: ({ nativeEvent: { layout } }: LayoutChangeEvent) => void;
-    measure(): Promise<Layout>;
-    _animateMove(obj?: Move): Promise<void>;
-    animateMove(obj?: {}): Promise<void>;
-    reset(): void;
-    handleNext: () => void;
-    handlePrev: () => void;
-    handleStop: () => void;
-    renderMask: () => JSX.Element;
-    renderTooltip(): JSX.Element | null;
-    render(): JSX.Element | null;
+export interface ModalRef {
+    animateMove: (obj?: Move) => Promise<void>;
 }
+export declare const Modal: React.ForwardRefExoticComponent<Omit<ModalProps, "ref"> & React.RefAttributes<ModalRef>>;
 export {};

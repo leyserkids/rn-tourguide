@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { BorderRadiusObject, KeyIterable, Shape } from '../types';
+import { BorderRadiusObject, Shape } from '../types';
 import { ITourGuideContext } from './TourGuideContext';
 interface Props {
     name: string;
@@ -17,24 +17,5 @@ interface Props {
     keepTooltipPosition?: boolean;
     tooltipBottomOffset?: number;
 }
-export declare class ConnectedStep extends React.Component<Props> {
-    static defaultProps: {
-        active: boolean;
-    };
-    wrapper: any;
-    shouldComponentUpdate(nextProps: KeyIterable, nextState: KeyIterable): boolean;
-    componentDidMount(): void;
-    componentDidUpdate(prevProps: Props): void;
-    componentWillUnmount(): void;
-    setNativeProps(obj: any): void;
-    register(): void;
-    unregister(): void;
-    measure(): Promise<unknown>;
-    render(): React.FunctionComponentElement<{
-        copilot: {
-            ref: (wrapper: any) => void;
-            onLayout: () => void;
-        };
-    }>;
-}
+export declare const ConnectedStep: React.FC<Props>;
 export {};
