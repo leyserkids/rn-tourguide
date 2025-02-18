@@ -1,16 +1,16 @@
-/// <reference types="react" />
-import { StyleProp, ViewStyle } from 'react-native';
+import React from 'react';
+import { StyleProp, ViewStyle, type DimensionValue } from 'react-native';
 import { BorderRadiusObject, Shape } from '../types';
 export interface TourGuideZoneByPositionProps {
     zone: number;
     tourKey?: string;
     active?: boolean;
-    top?: number | string;
-    left?: number | string;
-    right?: number | string;
-    bottom?: number | string;
-    width?: number | string;
-    height?: number | string;
+    top?: DimensionValue;
+    left?: DimensionValue;
+    right?: DimensionValue;
+    bottom?: DimensionValue;
+    width?: DimensionValue;
+    height?: DimensionValue;
     shape?: Shape;
     borderRadiusObject?: BorderRadiusObject;
     containerStyle?: StyleProp<ViewStyle>;
@@ -18,4 +18,4 @@ export interface TourGuideZoneByPositionProps {
     tooltipBottomOffset?: number;
     text?: string;
 }
-export declare const TourGuideZoneByPosition: ({ active, zone, tourKey, width, height, top, left, right, bottom, shape, containerStyle, keepTooltipPosition, tooltipBottomOffset, borderRadiusObject, text, }: TourGuideZoneByPositionProps) => JSX.Element | null;
+export declare const TourGuideZoneByPosition: ({ active, zone, tourKey, width, height, top, left, right, bottom, shape, containerStyle, keepTooltipPosition, tooltipBottomOffset, borderRadiusObject, text, }: TourGuideZoneByPositionProps) => React.JSX.Element | null;

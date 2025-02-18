@@ -5,5 +5,5 @@ interface WrapperProps {
     children?: React.ReactNode;
     style?: StyleProp<ViewStyle>;
 }
-export declare const Wrapper: ({ copilot, children, style }: WrapperProps) => JSX.Element;
+export declare const Wrapper: ({ copilot, children, style }: WrapperProps) => React.JSX.Element;
 export {};

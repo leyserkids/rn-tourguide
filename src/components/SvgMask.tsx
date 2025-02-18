@@ -4,13 +4,13 @@ import {
   Dimensions,
   Easing,
   LayoutChangeEvent,
-  Platform,
   StyleProp,
   View,
   ViewStyle,
   TouchableWithoutFeedback,
+  useAnimatedValue,
 } from 'react-native'
-import Svg, { PathProps } from 'react-native-svg'
+import Svg from 'react-native-svg'
 import { IStep, ValueXY } from '../types'
 import { svgMaskPathMorph } from '../utilities'
 import { AnimatedSvgPath } from './AnimatedPath'
@@ -29,8 +29,6 @@ interface Props {
   stop: () => void
 }
 
-const IS_WEB = Platform.OS !== 'web'
-
 export const SvgMask: React.FC<Props> = ({
   size = { x: 0, y: 0 },
   position = { x: 0, y: 0 },
@@ -44,30 +42,33 @@ export const SvgMask: React.FC<Props> = ({
   easing = Easing.linear,
   stop,
 }) => {
+  const rafID = React.useRef<number>()
   const windowDimensions = Dimensions.get('window')
   const [canvasSize, setCanvasSize] = React.useState({
     x: windowDimensions.width,
     y: windowDimensions.height,
   })
-  const mask = React.useRef<PathProps>(null)
-  const rafID = React.useRef<number>()
+  const firstPath = React.useMemo(
+    () =>
+      `M0,0H${windowDimensions.width}V${windowDimensions.height}H0V0ZM${
+        windowDimensions.width / 2
+      },${windowDimensions.height / 2} h 1 v 1 h -1 Z`,
+    [windowDimensions.width, windowDimensions.height],
+  )
+  const previousPathRef = React.useRef(firstPath)
+  const opacity = useAnimatedValue(0)
+  const [path, setPath] = React.useState('')
+  const pathRef = React.useRef(path)
+  const pathAnimation = useAnimatedValue(0)
 
-  const firstPath = `M0,0H${windowDimensions.width}V${
-    windowDimensions.height
-  }H0V0ZM${windowDimensions.width / 2},${
-    windowDimensions.height / 2
-  } h 1 v 1 h -1 Z`
-
-  const [state, setState] = React.useState({
-    opacity: new Animated.Value(0),
-    animation: new Animated.Value(0),
-    previousPath: firstPath,
-  })
+  React.useEffect(() => {
+    pathRef.current = path
+  }, [path])
 
   const getPath = React.useCallback(() => {
-    const path = svgMaskPathMorph({
-      animation: state.animation as any,
-      previousPath: state.previousPath,
+    const d = svgMaskPathMorph({
+      animation: pathAnimation as any,
+      previousPath: previousPathRef.current,
       to: {
         position,
         size,
@@ -77,13 +78,15 @@ export const SvgMask: React.FC<Props> = ({
         borderRadiusObject: currentStep?.borderRadiusObject,
       },
     })
-    return path
+    return d
   }, [
-    state.animation,
-    state.previousPath,
+    pathAnimation,
     position,
     size,
-    currentStep,
+    currentStep?.shape,
+    currentStep?.maskOffset,
+    currentStep?.borderRadius,
+    currentStep?.borderRadiusObject,
     maskOffset,
     borderRadius,
   ])
@@ -91,21 +94,13 @@ export const SvgMask: React.FC<Props> = ({
   const animationListener = React.useCallback(() => {
     const d = getPath()
     rafID.current = requestAnimationFrame(() => {
-      if (mask.current) {
-        if (IS_WEB) {
-          // @ts-ignore
-          mask.current.setNativeProps({ d })
-        } else {
-          // @ts-ignore
-          mask.current._touchableNode.setAttribute('d', d)
-        }
-      }
+      setPath(d)
     })
   }, [getPath])
 
   const animate = React.useCallback(() => {
     const animations = [
-      Animated.timing(state.animation, {
+      Animated.timing(pathAnimation, {
         toValue: 1,
         duration: animationDuration,
         easing,
@@ -114,9 +109,9 @@ export const SvgMask: React.FC<Props> = ({
     ]
 
     // @ts-ignore
-    if (state.opacity._value !== 1) {
+    if (opacity._value !== 1) {
       animations.push(
-        Animated.timing(state.opacity, {
+        Animated.timing(opacity, {
           toValue: 1,
           duration: animationDuration,
           easing,
@@ -127,24 +122,24 @@ export const SvgMask: React.FC<Props> = ({
 
     Animated.parallel(animations, { stopTogether: false }).start((result) => {
       if (result.finished) {
-        setState((prev) => ({ ...prev, previousPath: getPath() }))
+        previousPathRef.current = path
         // @ts-ignore
-        if (state.animation._value === 1) {
-          state.animation.setValue(0)
+        if (pathAnimation._value === 1) {
+          pathAnimation.setValue(0)
         }
       }
     })
-  }, [state.animation, state.opacity, animationDuration, easing, getPath])
+  }, [animationDuration, easing, opacity, path, pathAnimation])
 
   React.useEffect(() => {
-    const listenerID = state.animation.addListener(animationListener)
+    const listenerID = pathAnimation.addListener(animationListener)
     return () => {
-      state.animation.removeListener(listenerID)
+      pathAnimation.removeListener(listenerID)
       if (rafID.current) {
         cancelAnimationFrame(rafID.current)
       }
     }
-  }, [state.animation, animationListener])
+  }, [animationListener, pathAnimation])
 
   React.useEffect(() => {
     animate()
@@ -167,12 +162,11 @@ export const SvgMask: React.FC<Props> = ({
     >
       <Svg pointerEvents="none" width={canvasSize.x} height={canvasSize.y}>
         <AnimatedSvgPath
-          ref={mask}
           fill={backdropColor}
           strokeWidth={0}
           fillRule="evenodd"
-          d={firstPath}
-          opacity={state.opacity as any}
+          d={path}
+          opacity={opacity as any}
         />
       </Svg>
     </Wrapper>

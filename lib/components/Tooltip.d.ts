@@ -1,4 +1,4 @@
-/// <reference types="react" />
+import * as React from 'react';
 import { IStep, Labels } from '../types';
 export interface TooltipProps {
     isFirstStep?: boolean;
@@ -9,4 +9,4 @@ export interface TooltipProps {
     handlePrev?: () => void;
     handleStop?: () => void;
 }
-export declare const Tooltip: ({ isFirstStep, isLastStep, handleNext, handlePrev, handleStop, currentStep, labels, }: TooltipProps) => JSX.Element;
+export declare const Tooltip: ({ isFirstStep, isLastStep, handleNext, handlePrev, handleStop, currentStep, labels, }: TooltipProps) => React.JSX.Element;

@@ -15,5 +15,5 @@ interface Props {
     tooltipBottomOffset?: number;
     borderRadiusObject?: BorderRadiusObject;
 }
-export declare const Step: (props: Props) => JSX.Element;
+export declare const Step: (props: Props) => React.JSX.Element;
 export {};

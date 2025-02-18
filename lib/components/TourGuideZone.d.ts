@@ -16,4 +16,4 @@ export interface TourGuideZoneProps {
     borderRadiusObject?: BorderRadiusObject;
     children?: React.ReactNode;
 }
-export declare const TourGuideZone: ({ active, tourKey, zone, children, shape, text, moveIntoView, maskOffset, borderRadius, style, keepTooltipPosition, tooltipBottomOffset, borderRadiusObject, }: TourGuideZoneProps) => JSX.Element;
+export declare const TourGuideZone: ({ active, tourKey, zone, children, shape, text, moveIntoView, maskOffset, borderRadius, style, keepTooltipPosition, tooltipBottomOffset, borderRadiusObject, }: TourGuideZoneProps) => React.JSX.Element;
