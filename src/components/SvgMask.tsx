@@ -45,6 +45,10 @@ export const SvgMask: React.FC<Props> = ({
   stop,
 }) => {
   const windowDimensions = Dimensions.get('window')
+  const [canvasSize, setCanvasSize] = React.useState({
+    x: windowDimensions.width,
+    y: windowDimensions.height,
+  })
   const mask = React.useRef<PathProps>(null)
   const rafID = React.useRef<number>()
 
@@ -55,10 +59,6 @@ export const SvgMask: React.FC<Props> = ({
   } h 1 v 1 h -1 Z`
 
   const [state, setState] = React.useState({
-    canvasSize: {
-      x: windowDimensions.width,
-      y: windowDimensions.height,
-    },
     opacity: new Animated.Value(0),
     animation: new Animated.Value(0),
     previousPath: firstPath,
@@ -150,22 +150,11 @@ export const SvgMask: React.FC<Props> = ({
     animate()
   }, [position, size, animate])
 
-  const handleLayout = ({
-    nativeEvent: {
-      layout: { width, height },
-    },
-  }: LayoutChangeEvent) => {
-    setState((prev) => ({
-      ...prev,
-      canvasSize: {
-        x: width,
-        y: height,
-      },
-    }))
-  }
-
-  if (!state.canvasSize) {
-    return null
+  const handleLayout = (e: LayoutChangeEvent) => {
+    setCanvasSize({
+      x: e.nativeEvent.layout.width,
+      y: e.nativeEvent.layout.height,
+    })
   }
 
   const Wrapper: any = dismissOnPress ? TouchableWithoutFeedback : View
@@ -176,11 +165,7 @@ export const SvgMask: React.FC<Props> = ({
       onLayout={handleLayout}
       onPress={dismissOnPress ? stop : undefined}
     >
-      <Svg
-        pointerEvents="none"
-        width={state.canvasSize.x}
-        height={state.canvasSize.y}
-      >
+      <Svg pointerEvents="none" width={canvasSize.x} height={canvasSize.y}>
         <AnimatedSvgPath
           ref={mask}
           fill={backdropColor}
