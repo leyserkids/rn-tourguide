@@ -230,10 +230,10 @@ export const Modal = React.forwardRef<ModalRef, Omit<ModalProps, 'ref'>>(
     )
 
     const animateMove = React.useCallback(
-      (obj = {}) => {
+      (obj?: Move) => {
         return new Promise<void>((resolve) => {
           setContainerVisible(true)
-          _animateMove(obj as any).then(resolve)
+          _animateMove(obj).then(resolve)
         })
       },
       [_animateMove],
