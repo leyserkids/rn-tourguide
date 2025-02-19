@@ -104,6 +104,9 @@ export const TourGuideProvider = ({
         }
       }
 
+      // Wait for the target UI rendered after called moveIntoView()
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
       const size = await currentStep[key]?.target.measure()
       if (
         isNaN(size.width) ||
