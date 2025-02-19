@@ -1,14 +1,13 @@
 import React from 'react'
 import {
   Animated,
-  Dimensions,
   Easing,
-  LayoutChangeEvent,
   StyleProp,
   View,
   ViewStyle,
   TouchableWithoutFeedback,
   useAnimatedValue,
+  useWindowDimensions,
 } from 'react-native'
 import Svg, { Path as SvgPath } from 'react-native-svg'
 import { IStep, ValueXY } from '../types'
@@ -41,12 +40,8 @@ export const SvgMask: React.FC<Props> = ({
   easing = Easing.linear,
   stop,
 }) => {
-  const rafID = React.useRef<number>()
-  const windowDimensions = Dimensions.get('window')
-  const [canvasSize, setCanvasSize] = React.useState({
-    x: windowDimensions.width,
-    y: windowDimensions.height,
-  })
+  const requestNextID = React.useRef<number>()
+  const windowDimensions = useWindowDimensions()
   const firstPath = React.useMemo(
     () =>
       `M0,0H${windowDimensions.width}V${windowDimensions.height}H0V0ZM${
@@ -55,10 +50,11 @@ export const SvgMask: React.FC<Props> = ({
     [windowDimensions.width, windowDimensions.height],
   )
   const previousPathRef = React.useRef(firstPath)
+  const [path, setPath] = React.useState(firstPath)
   const pathRef = React.useRef(firstPath)
   const opacity = useAnimatedValue(0)
+  const opacityRef = React.useRef(0)
   const animation = useAnimatedValue(0)
-  const currentAnimationRef = React.useRef(0)
   const svgPathRef = React.useRef<SvgPath>(null)
 
   const getPath = React.useCallback(
@@ -92,16 +88,17 @@ export const SvgMask: React.FC<Props> = ({
   const animationListener = React.useCallback<Animated.ValueListenerCallback>(
     (state) => {
       const d = getPath(state.value)
-      rafID.current = requestAnimationFrame(() => {
-        svgPathRef.current?.setNativeProps({ d })
+      requestNextID.current = requestAnimationFrame(() => {
         pathRef.current = d
-        currentAnimationRef.current = state.value
+        setPath(d)
       })
     },
     [getPath],
   )
 
   const animate = React.useCallback(() => {
+    animation.setValue(0)
+
     const animations = [
       Animated.timing(animation, {
         toValue: 1,
@@ -111,8 +108,7 @@ export const SvgMask: React.FC<Props> = ({
       }),
     ]
 
-    // @ts-ignore
-    if (opacity._value !== 1) {
+    if (opacityRef.current !== 1) {
       animations.push(
         Animated.timing(opacity, {
           toValue: 1,
@@ -126,47 +122,44 @@ export const SvgMask: React.FC<Props> = ({
     Animated.parallel(animations, { stopTogether: false }).start((result) => {
       if (result.finished) {
         previousPathRef.current = pathRef.current
-        animation.setValue(0)
       }
     })
   }, [animationDuration, easing, opacity, animation])
 
+  const opacityListener = React.useCallback<Animated.ValueListenerCallback>(
+    (state) => {
+      opacityRef.current = state.value
+    },
+    [],
+  )
+
   React.useEffect(() => {
-    const listenerID = animation.addListener(animationListener)
+    const listenerID1 = opacity.addListener(opacityListener)
+    const listenerID2 = animation.addListener(animationListener)
     return () => {
-      animation.removeListener(listenerID)
-      if (rafID.current) {
-        cancelAnimationFrame(rafID.current)
+      opacity.removeListener(listenerID1)
+      animation.removeListener(listenerID2)
+      if (requestNextID.current) {
+        cancelAnimationFrame(requestNextID.current)
       }
     }
-  }, [animationListener, animation])
+  }, [animationListener, animation, opacityListener, opacity])
 
   React.useEffect(() => {
     animate()
   }, [position, size, animate])
 
-  const handleLayout = (e: LayoutChangeEvent) => {
-    setCanvasSize({
-      x: e.nativeEvent.layout.width,
-      y: e.nativeEvent.layout.height,
-    })
-  }
-
   const Wrapper: any = dismissOnPress ? TouchableWithoutFeedback : View
 
   return (
-    <Wrapper
-      style={style}
-      onLayout={handleLayout}
-      onPress={dismissOnPress ? stop : undefined}
-    >
-      <Svg pointerEvents="none" width={canvasSize.x} height={canvasSize.y}>
+    <Wrapper style={style} onPress={dismissOnPress ? stop : undefined}>
+      <Svg pointerEvents="none" width={'100%'} height={'100%'}>
         <SvgPath
           ref={svgPathRef}
           fill={backdropColor}
           strokeWidth={0}
           fillRule="evenodd"
-          d={firstPath}
+          d={path}
           opacity={opacity as any}
         />
       </Svg>
