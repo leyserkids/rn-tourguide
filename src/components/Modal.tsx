@@ -278,6 +278,7 @@ export const Modal = React.forwardRef<ModalRef, Omit<ModalProps, 'ref'>>(
         visible={containerVisible}
         onRequestClose={noop}
         transparent
+        statusBarTranslucent={Platform.OS === 'android' && Platform.Version >= 35}
         supportedOrientations={['portrait', 'landscape']}
       >
         <View
